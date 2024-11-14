@@ -42,7 +42,7 @@ class TaskManager:
         self.style.configure("Treeview", font=self.cell_font)
 
         # Create Treeview widget to display tasks
-        self.tree = ttk.Treeview(root, columns=("Name", "Description", "Priority", "Due Date", "Estimated Time", "Completed"))
+        self.tree = ttk.Treeview(root,selectmode="extended", columns=("Name", "Description", "Priority", "Due Date", "Estimated Time", "Completed"))
         self.tree.heading("#0", text="")  # First column is hidden
         self.tree.column("#0", width=0, stretch=tk.NO)  # Hide the extra column
         self.tree.heading("Name", text="Name")  # Define the column headings
@@ -67,6 +67,10 @@ class TaskManager:
         tk.Button(button_frame, text="Add Task", command=self.add_task, fg="navyblue", bg="lightblue", highlightbackground="lightblue", font=custom_font).grid(row=0, column=0, padx=(10, 20))
         tk.Button(button_frame, text="Edit Task", command=self.edit_task, fg="navyblue", bg="lightblue", highlightbackground="lightblue", font=custom_font).grid(row=0, column=1, padx=(20, 20))
         tk.Button(button_frame, text="Delete Task", command=self.delete_task, fg="navyblue", bg="lightblue", highlightbackground="lightblue", font=custom_font).grid(row=0, column=2, padx=(20, 10))
+
+        # Label to display task times
+        self.selected_tasks_time_label = tk.Label(root, text="Total Estimated Time of Selected Tasks: 0 hours", fg="white", bg="lightblue", font=custom_font)
+        self.selected_tasks_time_label.grid(row=8, column=0, columnspan=3, pady=(10, 5))
 
         # Sorting buttons on the right
         sort_frame = tk.Frame(root, bg="lightblue")
@@ -110,6 +114,9 @@ class TaskManager:
 
         # Bind double-click for editing task
         self.tree.bind("<Double-1>", self.on_item_double_click)
+
+        #Bind select for updating time
+        self.tree.bind("<<TreeviewSelect>>", lambda e: self.update_total_selected_time())
 
     # Add a new task to the list
     def add_task(self):
@@ -241,6 +248,19 @@ class TaskManager:
     def sort_by_due_date(self):
         self.tasks.sort(key=lambda task: datetime.strptime(task.due_date, "%Y-%m-%d"))  # Convert date string to datetime for sorting
         self.update_treeview()  # Update the Treeview after sorting
+
+    # Selecting tasks and summing the time
+    def update_total_selected_time(self):
+        selected_items = self.tree.selection()  # Get all selected items
+        total_time = 0.0
+        
+        # Sum the estimated time of each selected task
+        for item in selected_items:
+            index = self.tree.index(item)
+            task = self.tasks[index]
+            total_time += float(task.estimated_time)
+        
+        self.selected_tasks_time_label.config(text=f"Total Estimated Time of Selected Tasks: {total_time} hours")
 
 # Main code to run the application
 if __name__ == "__main__":
