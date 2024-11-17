@@ -68,8 +68,8 @@ class TaskManager:
         tk.Button(button_frame, text="Edit Task", command=self.edit_task, fg="navyblue", bg="lightblue", highlightbackground="lightblue", font=custom_font).grid(row=0, column=1, padx=(20, 20))
         tk.Button(button_frame, text="Delete Task", command=self.delete_task, fg="navyblue", bg="lightblue", highlightbackground="lightblue", font=custom_font).grid(row=0, column=2, padx=(20, 10))
 
-        # Label to display task times
-        self.selected_tasks_time_label = tk.Label(root, text="Total Estimated Time of Selected Tasks: 0 hours", fg="white", bg="lightblue", font=custom_font)
+        # Label to display total task times
+        self.selected_tasks_time_label = tk.Label(root, text="Total Estimated Time : 0 hours", fg="white", bg="lightblue", font=custom_font)
         self.selected_tasks_time_label.grid(row=8, column=0, columnspan=3, pady=(10, 5))
 
         # Sorting buttons on the right
@@ -115,8 +115,6 @@ class TaskManager:
         # Bind double-click for editing task
         self.tree.bind("<Double-1>", self.on_item_double_click)
 
-        #Bind select for updating time
-        self.tree.bind("<<TreeviewSelect>>", lambda e: self.update_total_selected_time())
 
     # Add a new task to the list
     def add_task(self):
@@ -157,7 +155,7 @@ class TaskManager:
         
         self.update_treeview()  # Update the Treeview display
         self.clear_fields()  # Clear the input fields for the next task
-
+        self.update_total_time() # Update the total time
     # Edit an existing task
     def edit_task(self):
         selected_item = self.tree.selection()
@@ -174,7 +172,7 @@ class TaskManager:
         self.tasks[index].estimated_time = self.estimated_time_var.get()  # Update estimated time
         self.update_treeview()  # Update the Treeview
         self.clear_fields()  # Clear the input fields
-
+        self.update_total_time() # Update the total time
     # Delete a selected task
     def delete_task(self):
         selected_item = self.tree.selection()
@@ -193,7 +191,7 @@ class TaskManager:
         self.task_count_label.config(text=f"Total Tasks: {self.task_counter}")
         
         self.update_treeview()  # Update the Treeview after deletion
-
+        self.update_total_time() # Update the total time
     # Update the Treeview with the current task list
     def update_treeview(self):
         # Clear the Treeview and add all tasks back
@@ -248,19 +246,12 @@ class TaskManager:
     def sort_by_due_date(self):
         self.tasks.sort(key=lambda task: datetime.strptime(task.due_date, "%Y-%m-%d"))  # Convert date string to datetime for sorting
         self.update_treeview()  # Update the Treeview after sorting
-
-    # Selecting tasks and summing the time
-    def update_total_selected_time(self):
-        selected_items = self.tree.selection()  # Get all selected items
-        total_time = 0.0
         
-        # Sum the estimated time of each selected task
-        for item in selected_items:
-            index = self.tree.index(item)
-            task = self.tasks[index]
-            total_time += float(task.estimated_time)
-        
-        self.selected_tasks_time_label.config(text=f"Total Estimated Time of Selected Tasks: {total_time} hours")
+    # Sum up the total of the tasks as they're being added
+    def update_total_time(self):
+        total_time = sum(float(task.estimated_time) for task in self.tasks)  # Sum up the time
+        self.selected_tasks_time_label.config(text=f"Total Estimated Time: {total_time} hours")
+    
 
 # Main code to run the application
 if __name__ == "__main__":
